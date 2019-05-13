@@ -12,20 +12,13 @@ import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
 
-class Square (val context: Context) {
+class Cube (val context: Context) {
 
     companion object {
 
         // number of coordinates per vertex in this array
         internal val COORDS_PER_VERTEX = 5
-//        internal var squareCoords = floatArrayOf(
-//                // positions         // texture coords
-//                0.5f,  0.5f, 0.0f,   1.0f, 1.0f, // top right
-//                0.5f, -0.5f, 0.0f,   1.0f, 0.0f, // bottom right
-//                -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, // bottom left
-//                -0.5f,  0.5f, 0.0f,   0.0f, 1.0f  // top left
-//        )
-        internal var squareCoords = floatArrayOf(
+        internal var cubeCoords = floatArrayOf(
                 // positions         // texture coords
                 -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
                 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
@@ -71,7 +64,7 @@ class Square (val context: Context) {
         )
 
         internal val vertexStride = COORDS_PER_VERTEX * 4
-        internal val vertexCount = squareCoords.size/COORDS_PER_VERTEX
+        internal val vertexCount = cubeCoords.size/COORDS_PER_VERTEX
         private val textures = IntArray(1)
         private const val mPositionDataSize = 3
         private const val mTexDataSize = 2
@@ -114,10 +107,10 @@ class Square (val context: Context) {
 
     init {
         // initialize vertex byte buffer for shape coordinates
-        val bb = ByteBuffer.allocateDirect(squareCoords.size * 4) // (# of coordinate values * 4 bytes per float)
+        val bb = ByteBuffer.allocateDirect(cubeCoords.size * 4) // (# of coordinate values * 4 bytes per float)
         bb.order(ByteOrder.nativeOrder())
         VBO = bb.asFloatBuffer()
-        VBO.put(squareCoords)
+        VBO.put(cubeCoords)
         VBO.position(0)
 
         // initialize byte buffer for the draw list
@@ -207,22 +200,6 @@ class Square (val context: Context) {
         GLES20.glUniformMatrix4fv(uViewHandle, 1, false, viewMatrix, 0)
         GLES20.glUniformMatrix4fv(uProjectionHandle, 1, false, projectionMatrix, 0)
 
-
-        // Prepare the triangle coordinate data
-//        GLES20.glVertexAttribPointer(
-//            mPositionHandle, COORDS_PER_VERTEX,
-//            GLES20.GL_FLOAT, false,
-//            vertexStride, VBO
-//        )
-
-
-//
-//        // Set color for drawing the triangle
-//        GLES20.glUniform4fv(mTexHandle, 1, color, 0)
-
-        // Draw the triangle
-//        GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.size,
-////            GLES20.GL_UNSIGNED_SHORT, EBO)
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36)
 
         // Disable vertex array
