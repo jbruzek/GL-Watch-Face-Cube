@@ -37,7 +37,7 @@ class GLProgram(context: Context, vertexAssetFilename: String, fragmentAssetFile
     private val positionHandle: Int
 
     // Handle for uColor uniform in fragment shader
-    private val colorHandle: Int
+//    private val colorHandle: Int
 
     /**
      * Constructor
@@ -77,7 +77,7 @@ class GLProgram(context: Context, vertexAssetFilename: String, fragmentAssetFile
         if (CHECK_GL_ERRORS) checkGlError("glGetUniformLocation")
 
         // Get a handle to the vertex shader's aPosition attribute.
-        positionHandle = GLES20.glGetAttribLocation(program, "aPosition")
+        positionHandle = GLES20.glGetAttribLocation(program, "aPos")
         if (CHECK_GL_ERRORS) checkGlError("glGetAttribLocation")
 
         // Enable vertex array (VBO).
@@ -85,9 +85,11 @@ class GLProgram(context: Context, vertexAssetFilename: String, fragmentAssetFile
         if (CHECK_GL_ERRORS) checkGlError("glEnableVertexAttribArray")
 
         // Get a handle to fragment shader's uColor uniform.
-        colorHandle = GLES20.glGetUniformLocation(program, "uColor")
-        if (CHECK_GL_ERRORS) checkGlError("glGetUniformLocation")
+//        colorHandle = GLES20.glGetUniformLocation(program, "uColor")
+//        if (CHECK_GL_ERRORS) checkGlError("glGetUniformLocation")
     }
+
+
 
     /**
      * Tells OpenGL to use this program. Call this method before drawing
@@ -118,8 +120,8 @@ class GLProgram(context: Context, vertexAssetFilename: String, fragmentAssetFile
         if (CHECK_GL_ERRORS) checkGlError("glVertexAttribPointer")
 
         // Pass the triangle list's color to OpenGL.
-        GLES20.glUniform4fv(colorHandle, 1 /* count */, color, 0 /* offset */)
-        if (CHECK_GL_ERRORS) checkGlError("glUniform4fv")
+//        GLES20.glUniform4fv(colorHandle, 1 /* count */, color, 0 /* offset */)
+//        if (CHECK_GL_ERRORS) checkGlError("glUniform4fv")
     }
 
     /**

@@ -48,8 +48,9 @@ class CubeVertices {
             -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
         )
 
+        const val BYTES_PER_FLOAT = 4
         const val NUM_COORDS = 36
         const val COORDS_PER = 5
-        const val STRIDE = 5
+        const val STRIDE = 5 * BYTES_PER_FLOAT
     }
 }
