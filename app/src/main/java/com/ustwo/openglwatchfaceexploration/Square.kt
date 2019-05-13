@@ -82,7 +82,9 @@ class Square (val context: Context) {
 
     private var aPosHandle: Int
     private var aTexHandle: Int
-    private var uMVPMatrixHandle: Int
+    private var uModelHandle: Int
+    private var uViewHandle: Int
+    private var uProjectionHandle: Int
 
     private var degrees = 0f
 
@@ -90,12 +92,14 @@ class Square (val context: Context) {
     internal var color = floatArrayOf(0.63671875f, 0.76953125f, 0.22265625f, 1.0f)
 
 
-    private val vertexShaderCode = "uniform mat4 u_MVPMatrix;" +
+    private val vertexShaderCode = "uniform mat4 model;" +
+            "uniform mat4 view;" +
+            "uniform mat4 projection;" +
             "attribute vec4 vPosition;" +
             "attribute vec2 aTexCoord;" +
             "varying vec2 TexCoord;" +
             "void main() {" +
-            "  gl_Position = u_MVPMatrix * vPosition;" +
+            "  gl_Position = projection * view * model * vPosition;" +
             "  TexCoord = aTexCoord;" +
             "}"
 
@@ -148,7 +152,9 @@ class Square (val context: Context) {
         // get handle to fragment shader's vColor member
         aTexHandle = GLES20.glGetAttribLocation(mProgram, "aTexCoord")
         // get handle to mvp matrix uniform
-        uMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "u_MVPMatrix")
+        uModelHandle = GLES20.glGetUniformLocation(mProgram, "model")
+        uViewHandle = GLES20.glGetUniformLocation(mProgram, "view")
+        uProjectionHandle = GLES20.glGetUniformLocation(mProgram, "projection")
 
         // Add program to OpenGL ES environment
         GLES20.glUseProgram(mProgram)
@@ -169,7 +175,7 @@ class Square (val context: Context) {
         return shader
     }
 
-    fun draw(mvpMatrix: FloatArray) {
+    fun draw(modelMatrix: FloatArray, viewMatrix: FloatArray, projectionMatrix: FloatArray) {
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0])
 
@@ -193,9 +199,13 @@ class Square (val context: Context) {
         if (degrees >= 360f) { degrees = 0f }
 
         // get handle to shape's transformation matrix
-        uMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "u_MVPMatrix")
+        uModelHandle = GLES20.glGetUniformLocation(mProgram, "model")
+        uViewHandle = GLES20.glGetUniformLocation(mProgram, "view")
+        uProjectionHandle = GLES20.glGetUniformLocation(mProgram, "projection")
         // Apply the projection and view transformation
-        GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, rotateMatrix, 0)
+        GLES20.glUniformMatrix4fv(uModelHandle, 1, false, modelMatrix, 0)
+        GLES20.glUniformMatrix4fv(uViewHandle, 1, false, viewMatrix, 0)
+        GLES20.glUniformMatrix4fv(uProjectionHandle, 1, false, projectionMatrix, 0)
 
 
         // Prepare the triangle coordinate data

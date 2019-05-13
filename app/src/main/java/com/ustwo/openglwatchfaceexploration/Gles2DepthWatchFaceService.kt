@@ -6,6 +6,7 @@ import android.opengl.EGLDisplay
 import android.support.wearable.watchface.Gles2WatchFaceService
 
 open class Gles2DepthWatchFaceService : Gles2WatchFaceService() {
+
     companion object {
         private val CONFIG_ATTRIB_LIST = intArrayOf(
             EGL14.EGL_RENDERABLE_TYPE, 4,
@@ -18,29 +19,22 @@ open class Gles2DepthWatchFaceService : Gles2WatchFaceService() {
         )
     }
 
-    override fun onCreateEngine(): Gles2DepthWatchFaceService.Engine {
-        return Engine()
-    }
-
     open inner class Engine : Gles2WatchFaceService.Engine() {
 
         override fun chooseEglConfig(eglDisplay: EGLDisplay): EGLConfig {
             val numEglConfigs = IntArray(1)
             val eglConfigs = arrayOfNulls<EGLConfig>(1)
-            return if (!EGL14.eglChooseConfig(
+            if (!EGL14.eglChooseConfig(
                     eglDisplay,
                     Gles2DepthWatchFaceService.CONFIG_ATTRIB_LIST, 0,
-                    eglConfigs, 0,
-                    eglConfigs.size,
-                    numEglConfigs, 0
-                )
-            ) {
+                    eglConfigs, 0, eglConfigs.size,
+                    numEglConfigs, 0)) {
                 throw RuntimeException("eglChooseConfig failed")
             } else if (numEglConfigs[0] == 0) {
                 throw RuntimeException("no matching EGL configs")
-            } else {
-                eglConfigs[0]!!
             }
+
+            return eglConfigs[0]!!
         }
 
     }

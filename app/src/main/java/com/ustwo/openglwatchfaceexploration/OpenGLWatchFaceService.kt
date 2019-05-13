@@ -1,5 +1,6 @@
 package com.ustwo.openglwatchfaceexploration
 
+import android.R.attr.mode
 import android.support.wearable.watchface.Gles2WatchFaceService
 import android.support.wearable.watchface.WatchFaceStyle
 import android.util.Log
@@ -26,7 +27,7 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
     private val FPS: Long = 60
 
     // Z distance from the camera to the watchface.
-    private val EYE_Z = -2.3f
+    private val EYE_Z = -3.0f
 
     /** Number of bytes to store a float in GL.  */
     val BYTES_PER_FLOAT = 4
@@ -64,6 +65,8 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
     private val mvpMatrix = FloatArray(16)
 
     private lateinit var square: Square
+
+    private var angle = 0f
 
 
     override fun onCreateEngine(): Engine {
@@ -158,16 +161,7 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
 
             // Update the projection matrix based on the new aspect ratio.
             val aspectRatio = width.toFloat() / height
-            Matrix.frustumM(
-                projectionMatrix,
-                0 /* offset */,
-                -aspectRatio /* left */,
-                aspectRatio /* right */,
-                -1f /* bottom */,
-                1f /* top */,
-                3f /* near */,
-                7f /* far */
-            )
+            Matrix.perspectiveM(projectionMatrix, 0, 45f, aspectRatio, 0.1f, 100f)
         }
 
         private fun generateTextures() {
@@ -272,10 +266,12 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
 //            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
 
 
-            Matrix.multiplyMM(vpMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
-            Matrix.multiplyMM(mvpMatrix, 0, vpMatrix, 0, modelMatrix, 0)
+            Matrix.setIdentityM(modelMatrix, 0)
+            Matrix.rotateM(modelMatrix, 0, angle, 0.5f, 1f, 0f)
+            angle += 2
+            if (angle >= 360) angle = 0f
 
-            square.draw(mvpMatrix)
+            square.draw(modelMatrix, viewMatrix, projectionMatrix)
 
 
 //            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0])
