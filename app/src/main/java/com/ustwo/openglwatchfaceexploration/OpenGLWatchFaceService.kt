@@ -160,7 +160,7 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
             if (isInAmbientMode) {
                 GLES20.glClearColor(0f, 0f, 0f, 1f)
             } else {
-                GLES20.glClearColor(0.5f, 0.2f, 1.0f, 1f)
+                GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1f)
             }
 
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT or GLES20.GL_COLOR_BUFFER_BIT)

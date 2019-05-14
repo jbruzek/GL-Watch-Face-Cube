@@ -85,23 +85,8 @@ class Cube (val context: Context) {
     internal var color = floatArrayOf(0.63671875f, 0.76953125f, 0.22265625f, 1.0f)
 
 
-    private val vertexShaderCode = "uniform mat4 model;" +
-            "uniform mat4 view;" +
-            "uniform mat4 projection;" +
-            "attribute vec4 vPosition;" +
-            "attribute vec2 aTexCoord;" +
-            "varying vec2 TexCoord;" +
-            "void main() {" +
-            "  gl_Position = projection * view * model * vPosition;" +
-            "  TexCoord = aTexCoord;" +
-            "}"
-
-    private val fragmentShaderCode = "precision mediump float;" +
-            "varying vec2 TexCoord;" +
-            "uniform sampler2D texture1;" +
-            "void main() {" +
-            "  gl_FragColor = texture2D(texture1, TexCoord);" +
-            "}"
+    private val vertexShaderCode : String
+    private val fragmentShaderCode : String
 
     internal var mProgram: Int = 0
 
@@ -126,6 +111,9 @@ class Cube (val context: Context) {
         // texture attribute
         GLES20.glVertexAttribPointer(1, 3, GLES20.GL_FLOAT, false, vertexStride, 3)
         GLES20.glEnableVertexAttribArray(1)
+
+        vertexShaderCode = Utils.readStringAsset(context, "cube.vs")
+        fragmentShaderCode = Utils.readStringAsset(context, "cube.fs")
 
         val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode)
         val fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode)
