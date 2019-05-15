@@ -31,6 +31,7 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
     private val projectionMatrix = FloatArray(16)
 
     private lateinit var cube: Cube
+    private lateinit var skybox: SkyBox
 
     private var angle = 0f
 
@@ -77,6 +78,14 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
             GLES20.glEnable(GLES20.GL_DEPTH_TEST)
 
             cube = Cube(this@OpenGLWatchFaceService)
+            skybox = SkyBox(this@OpenGLWatchFaceService,
+                intArrayOf(
+                    R.drawable.mnight_rt,
+                    R.drawable.mnight_lf,
+                    R.drawable.mnight_up,
+                    R.drawable.mnight_dn,
+                    R.drawable.mnight_ft,
+                    R.drawable.mnight_bk))
         }
 
         override fun onGlSurfaceCreated(width: Int, height: Int) {
@@ -164,6 +173,8 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
             }
 
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT or GLES20.GL_COLOR_BUFFER_BIT)
+
+            skybox.draw(viewMatrix, projectionMatrix)
 
 
             Matrix.setIdentityM(modelMatrix, 0)

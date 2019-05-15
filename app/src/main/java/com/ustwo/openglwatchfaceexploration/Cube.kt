@@ -17,8 +17,8 @@ class Cube (val context: Context) {
     companion object {
 
         // number of coordinates per vertex in this array
-        internal val COORDS_PER_VERTEX = 5
-        internal var cubeCoords = floatArrayOf(
+        private val COORDS_PER_VERTEX = 5
+        private var cubeCoords = floatArrayOf(
                 // positions         // texture coords
                 -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
                 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
@@ -63,8 +63,7 @@ class Cube (val context: Context) {
                 -0.5f,  0.5f, -0.5f,  0.0f, 0.0f
         )
 
-        internal val vertexStride = COORDS_PER_VERTEX * 4
-        internal val vertexCount = cubeCoords.size/COORDS_PER_VERTEX
+        private val vertexStride = COORDS_PER_VERTEX * 4
         private val textures = IntArray(1)
         private const val mPositionDataSize = 3
         private const val mTexDataSize = 2
@@ -82,13 +81,13 @@ class Cube (val context: Context) {
     private var degrees = 0f
 
     private val drawOrder = shortArrayOf(0, 1, 2, 0, 2, 3) // order to draw vertices
-    internal var color = floatArrayOf(0.63671875f, 0.76953125f, 0.22265625f, 1.0f)
+    private var color = floatArrayOf(0.63671875f, 0.76953125f, 0.22265625f, 1.0f)
 
 
     private val vertexShaderCode : String
     private val fragmentShaderCode : String
 
-    internal var mProgram: Int = 0
+    private var mProgram: Int = 0
 
     init {
         // initialize vertex byte buffer for shape coordinates
@@ -115,8 +114,8 @@ class Cube (val context: Context) {
         vertexShaderCode = Utils.readStringAsset(context, "cube.vs")
         fragmentShaderCode = Utils.readStringAsset(context, "cube.fs")
 
-        val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode)
-        val fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode)
+        val vertexShader = Utils.loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode)
+        val fragmentShader = Utils.loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode)
 
         mProgram = GLES20.glCreateProgram()             // create empty OpenGL ES Program
         GLES20.glAttachShader(mProgram, vertexShader)   // add the vertex shader to program
@@ -137,26 +136,12 @@ class Cube (val context: Context) {
         uViewHandle = GLES20.glGetUniformLocation(mProgram, "view")
         uProjectionHandle = GLES20.glGetUniformLocation(mProgram, "projection")
 
-        // Add program to OpenGL ES environment
-        GLES20.glUseProgram(mProgram)
-
         generateTextures()
     }
 
-    private fun loadShader(type: Int, shaderCode: String): Int {
-
-        // create a vertex shader type (GLES20.GL_VERTEX_SHADER)
-        // or a fragment shader type (GLES20.GL_FRAGMENT_SHADER)
-        val shader = GLES20.glCreateShader(type)
-
-        // add the source code to the shader and compile it
-        GLES20.glShaderSource(shader, shaderCode)
-        GLES20.glCompileShader(shader)
-
-        return shader
-    }
-
     fun draw(modelMatrix: FloatArray, viewMatrix: FloatArray, projectionMatrix: FloatArray) {
+        // Add program to OpenGL ES environment
+        GLES20.glUseProgram(mProgram)
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0])
 
