@@ -143,6 +143,8 @@ class Cube (val context: Context) {
         // Add program to OpenGL ES environment
         GLES20.glUseProgram(mProgram)
 
+//        GLES20.glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0])
 
         // Enable a handle to the triangle vertices
@@ -194,7 +196,7 @@ class Cube (val context: Context) {
 
         //get our texture bitmap
         val bo = BitmapFactory.Options()
-        val tex = BitmapFactory.decodeResource(context.resources, R.drawable.bg, bo)
+        val tex = BitmapFactory.decodeResource(context.resources, R.drawable.checker, bo)
 
         GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, tex, 0)
         GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
