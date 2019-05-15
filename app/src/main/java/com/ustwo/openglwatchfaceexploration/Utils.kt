@@ -37,12 +37,34 @@ class Utils {
             // create a vertex shader type (GLES20.GL_VERTEX_SHADER)
             // or a fragment shader type (GLES20.GL_FRAGMENT_SHADER)
             val shader = GLES20.glCreateShader(type)
+            checkGlError("glCreateShader")
 
             // add the source code to the shader and compile it
             GLES20.glShaderSource(shader, shaderCode)
+            checkGlError("glShaderSource")
             GLES20.glCompileShader(shader)
+            checkGlError("glCompileShader")
+
+            GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, errorInt, 0)
+            if (errorInt[0] == GLES20.GL_FALSE) {
+                Log.e("loadShader", "Compiling shader failed")
+                val message = GLES20.glGetShaderInfoLog(shader)
+                throw RuntimeException(message)
+            }
 
             return shader
+        }
+        
+        fun generateSkyBoxViewMatrix(viewMatrix: FloatArray, skyBoxMatrix: FloatArray) {
+            viewMatrix.copyInto(skyBoxMatrix)
+            //remove translations from the skybox view matrix
+            skyBoxMatrix[3] = 0.0f
+            skyBoxMatrix[7] = 0.0f
+            skyBoxMatrix[11] = 0.0f
+            skyBoxMatrix[12] = 0.0f
+            skyBoxMatrix[13] = 0.0f
+            skyBoxMatrix[14] = 0.0f
+            skyBoxMatrix[15] = 1.0f
         }
 
         fun checkGlError(glOperation: String) {
@@ -67,6 +89,8 @@ class Utils {
         }
 
         private var isDebug = true
+
+        private val errorInt = IntArray(1)
     }
 
 

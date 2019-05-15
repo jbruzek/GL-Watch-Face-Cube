@@ -19,13 +19,14 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
     private val FPS: Long = 60
 
     // Z distance from the camera to the watchface.
-    private val EYE_Z = -3.0f
+    private val EYE_Z = -5.0f
 
     // Model matrix converts Local (Object) Space to World Space
     private val modelMatrix = FloatArray(16)
 
     //View Matrix converts world space to view space (camera view)
     private val viewMatrix = FloatArray(16)
+    private val viewMatrixSkyBox = FloatArray(16)
 
     //Projection matrix transforms from view space to clip space
     private val projectionMatrix = FloatArray(16)
@@ -66,25 +67,35 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
             super.onGlContextCreated()
 
             Matrix.setLookAtM(
-                viewMatrix,
-                0, // dest index
-                0f, 0f, EYE_Z, // eye
-                0f, 0f, 0f, // center
-                0f, 1f, 0f
+            viewMatrix,
+            0, // dest index
+            0f, 0f, EYE_Z, // eye
+            0f, 0f, 0f, // center
+            0f, 1f, 0f
             ) // up vector
+
+            //remove translation from the skybox view matrix
+            viewMatrix.copyInto(viewMatrixSkyBox)
+            viewMatrixSkyBox[3] = 0.0f
+            viewMatrixSkyBox[7] = 0.0f
+            viewMatrixSkyBox[11] = 0.0f
+            viewMatrixSkyBox[12] = 0.0f
+            viewMatrixSkyBox[13] = 0.0f
+            viewMatrixSkyBox[14] = 0.0f
+            viewMatrixSkyBox[15] = 0.0f
 
             //configure global gl state
             GLES20.glEnable(GLES20.GL_DEPTH_TEST)
 
             cube = Cube(this@OpenGLWatchFaceService)
-//            skybox = SkyBox(this@OpenGLWatchFaceService,
-//                intArrayOf(
-//                    R.drawable.mnight_rt,
-//                    R.drawable.mnight_lf,
-//                    R.drawable.mnight_up,
-//                    R.drawable.mnight_dn,
-//                    R.drawable.mnight_ft,
-//                    R.drawable.mnight_bk))
+            skybox = SkyBox(this@OpenGLWatchFaceService,
+                intArrayOf(
+                    R.drawable.box_right,
+                    R.drawable.box_left,
+                    R.drawable.box_top,
+                    R.drawable.box_bottom,
+                    R.drawable.box_front,
+                    R.drawable.box_back))
         }
 
         override fun onGlSurfaceCreated(width: Int, height: Int) {
@@ -168,17 +179,30 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
             if (isInAmbientMode) {
                 GLES20.glClearColor(0f, 0f, 0f, 1f)
             } else {
-                GLES20.glClearColor(0.1f, 0.1f, 0.2f, 1f)
+                GLES20.glClearColor(1f, 0.1f, 0.2f, 1f)
             }
+
+            val radius = 10.0f
+            val camX = Math.sin(angle / 200.0) * radius
+            val camY = Math.sin(angle / 300.0) * radius / 3
+            val camZ = Math.cos(angle / 200.0) * radius
+            Matrix.setLookAtM(viewMatrix,0,
+                camX.toFloat(), camY.toFloat(), camZ.toFloat(), // eye
+                0f, 0f, 0f, // center
+                0f, 1f, 0f
+            ) // up vector
+
+            //remove translation from the skybox view matrix
+            Utils.generateSkyBoxViewMatrix(viewMatrix, viewMatrixSkyBox)
 
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT or GLES20.GL_COLOR_BUFFER_BIT)
 
-//            skybox.draw(viewMatrix, projectionMatrix)
+            skybox.draw(viewMatrixSkyBox, projectionMatrix)
 
             Matrix.setIdentityM(modelMatrix, 0)
-            Matrix.rotateM(modelMatrix, 0, angle, 0.5f, 1f, 0f)
+//            Matrix.rotateM(modelMatrix, 0, angle, 0.5f, 1f, 0f)
             angle += 2
-            if (angle >= 360) angle = 0f
+//            if (angle >= 360) angle = 0f
 
             cube.draw(modelMatrix, viewMatrix, projectionMatrix)
 

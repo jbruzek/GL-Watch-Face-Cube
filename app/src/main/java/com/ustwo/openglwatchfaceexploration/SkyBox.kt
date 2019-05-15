@@ -107,6 +107,11 @@ class SkyBox(val context: Context, val images: IntArray) {
         // creates OpenGL ES program executables
         GLES20.glLinkProgram(mProgram)
         Utils.checkGlError("glLinkProgram")
+        val linkStatus = IntArray(1)
+        GLES20.glGetProgramiv(mProgram, GLES20.GL_LINK_STATUS, linkStatus, 0)
+        if (linkStatus[0] == GLES20.GL_FALSE) {
+            Log.e("glLinkProgram", "linking program failed")
+        }
 
         // get handle to vertex shader's vPosition member
         aPosHandle = GLES20.glGetAttribLocation(mProgram, "aPos")
