@@ -1,11 +1,16 @@
 package com.ustwo.openglwatchfaceexploration
 
+import android.graphics.*
 import android.opengl.GLES20
 import android.opengl.Matrix
 import android.support.wearable.watchface.WatchFaceStyle
 import android.util.Log
 import android.view.Gravity
 import android.view.SurfaceHolder
+import java.lang.invoke.MutableCallSite
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 /**
@@ -31,70 +36,85 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
     //Projection matrix transforms from view space to clip space
     private val projectionMatrix = FloatArray(16)
 
-    private lateinit var cube: MirrorCube
+    private lateinit var cube: TextureCube
     private lateinit var skybox: SkyBox
 
     private var angle = 0f
 
+    private val timeHeight = 40
+    private val timeWidth = 40
+    private val timeBitmap: Bitmap = Bitmap.createBitmap(timeWidth, timeHeight, Bitmap.Config.ARGB_8888)
+    private val timeCanvas: Canvas = Canvas(timeBitmap)
+    private val mTimePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val mTimeFormat12 = SimpleDateFormat("hh:mm", Locale.getDefault())
+    private val calendar: Calendar = Calendar.getInstance()
+    private var timeString: String = ""
+    private val mTimeFormat24 = SimpleDateFormat("HH:mm", Locale.getDefault())
+
     private val cubePositions = arrayOf(
-        floatArrayOf( 0.0f,  0.0f,  0.0f)
-//        floatArrayOf( 2.0f,  5.0f, -15.0f),
-//        floatArrayOf(-1.5f, -2.2f, -2.5f),
-//        floatArrayOf(-3.8f, -2.0f, -12.3f),
-//        floatArrayOf (2.4f, -0.4f, -3.5f),
-//        floatArrayOf(-1.7f,  3.0f, -7.5f),
-//        floatArrayOf( 1.3f, -2.0f, -2.5f),
-//        floatArrayOf( 1.5f,  2.0f, -2.5f),
-//        floatArrayOf( 1.5f,  0.2f, -1.5f),
-//        floatArrayOf(-1.3f,  1.0f, -1.5f),
-//        floatArrayOf( 2.0f,  5.0f, 15.0f),
-//        floatArrayOf(-1.5f, -2.2f, 2.5f),
-//        floatArrayOf(-3.8f, -2.0f, 12.3f),
-//        floatArrayOf (2.4f, -0.4f, 3.5f),
-//        floatArrayOf(-1.7f,  3.0f, 7.5f),
-//        floatArrayOf( 1.3f, -2.0f, 2.5f),
-//        floatArrayOf( 1.5f,  2.0f, 2.5f),
-//        floatArrayOf( 1.5f,  0.2f, 1.5f),
-//        floatArrayOf(-1.3f,  1.0f, 1.5f),
-//
-//        floatArrayOf(-15.0f,  2.0f,  5.0f),
-//        floatArrayOf(-2.5f , -1.5f, -2.2f),
-//        floatArrayOf(-12.3f, -3.8f, -2.0f),
-//        floatArrayOf( -3.5f , 2.4f, -0.4f),
-//        floatArrayOf(-7.5f , -1.7f,  3.0f),
-//        floatArrayOf(-2.5f ,  1.3f, -2.0f),
-//        floatArrayOf(-2.5f ,  1.5f,  2.0f),
-//        floatArrayOf(-1.5f ,  1.5f,  0.2f),
-//        floatArrayOf(-1.5f , -1.3f,  1.0f),
-//        floatArrayOf(15.0f ,  2.0f,  5.0f),
-//        floatArrayOf(2.5f  , -1.5f, -2.2f),
-//        floatArrayOf(12.3f , -3.8f, -2.0f),
-//        floatArrayOf( 3.5f  , 2.4f, -0.4f),
-//        floatArrayOf(7.5f  , -1.7f,  3.0f),
-//        floatArrayOf(2.5f  ,  1.3f, -2.0f),
-//        floatArrayOf(2.5f  ,  1.5f,  2.0f),
-//        floatArrayOf(1.5f  ,  1.5f,  0.2f),
-//        floatArrayOf(1.5f  , -1.3f,  1.0f),
-//
-//        floatArrayOf( 2.0f, -15.0f,  5.0f ),
-//        floatArrayOf(-1.5f, -2.5f , -2.2f ),
-//        floatArrayOf(-3.8f, -12.3f, -2.0f ),
-//        floatArrayOf( 2.4f, -3.5f , -0.4f ),
-//        floatArrayOf(-1.7f, -7.5f ,  3.0f ),
-//        floatArrayOf( 1.3f, -2.5f , -2.0f ),
-//        floatArrayOf( 1.5f, -2.5f ,  2.0f ),
-//        floatArrayOf( 1.5f, -1.5f ,  0.2f ),
-//        floatArrayOf(-1.3f, -1.5f ,  1.0f ),
-//        floatArrayOf( 2.0f, 15.0f ,  5.0f ),
-//        floatArrayOf(-1.5f, 2.5f  , -2.2f ),
-//        floatArrayOf(-3.8f, 12.3f , -2.0f ),
-//        floatArrayOf( 2.4f, 3.5f  , -0.4f ),
-//        floatArrayOf(-1.7f, 7.5f  ,  3.0f ),
-//        floatArrayOf( 1.3f, 2.5f  , -2.0f ),
-//        floatArrayOf( 1.5f, 2.5f  ,  2.0f ),
-//        floatArrayOf( 1.5f, 1.5f  ,  0.2f ),
-//        floatArrayOf(-1.3f, 1.5f  ,  1.0f )
+        floatArrayOf( 0.0f,  0.0f,  0.0f),
+        floatArrayOf( 2.0f,  5.0f, -15.0f),
+        floatArrayOf(-1.5f, -2.2f, -2.5f),
+        floatArrayOf(-3.8f, -2.0f, -12.3f),
+        floatArrayOf (2.4f, -0.4f, -3.5f),
+        floatArrayOf(-1.7f,  3.0f, -7.5f),
+        floatArrayOf( 1.3f, -2.0f, -2.5f),
+        floatArrayOf( 1.5f,  2.0f, -2.5f),
+        floatArrayOf( 1.5f,  0.2f, -1.5f),
+        floatArrayOf(-1.3f,  1.0f, -1.5f),
+        floatArrayOf( 2.0f,  5.0f, 15.0f),
+        floatArrayOf(-1.5f, -2.2f, 2.5f),
+        floatArrayOf(-3.8f, -2.0f, 12.3f),
+        floatArrayOf (2.4f, -0.4f, 3.5f),
+        floatArrayOf(-1.7f,  3.0f, 7.5f),
+        floatArrayOf( 1.3f, -2.0f, 2.5f),
+        floatArrayOf( 1.5f,  2.0f, 2.5f),
+        floatArrayOf( 1.5f,  0.2f, 1.5f),
+        floatArrayOf(-1.3f,  1.0f, 1.5f),
+
+        floatArrayOf(-15.0f,  2.0f,  5.0f),
+        floatArrayOf(-2.5f , -1.5f, -2.2f),
+        floatArrayOf(-12.3f, -3.8f, -2.0f),
+        floatArrayOf( -3.5f , 2.4f, -0.4f),
+        floatArrayOf(-7.5f , -1.7f,  3.0f),
+        floatArrayOf(-2.5f ,  1.3f, -2.0f),
+        floatArrayOf(-2.5f ,  1.5f,  2.0f),
+        floatArrayOf(-1.5f ,  1.5f,  0.2f),
+        floatArrayOf(-1.5f , -1.3f,  1.0f),
+        floatArrayOf(15.0f ,  2.0f,  5.0f),
+        floatArrayOf(2.5f  , -1.5f, -2.2f),
+        floatArrayOf(12.3f , -3.8f, -2.0f),
+        floatArrayOf( 3.5f  , 2.4f, -0.4f),
+        floatArrayOf(7.5f  , -1.7f,  3.0f),
+        floatArrayOf(2.5f  ,  1.3f, -2.0f),
+        floatArrayOf(2.5f  ,  1.5f,  2.0f),
+        floatArrayOf(1.5f  ,  1.5f,  0.2f),
+        floatArrayOf(1.5f  , -1.3f,  1.0f),
+
+        floatArrayOf( 2.0f, -15.0f,  5.0f ),
+        floatArrayOf(-1.5f, -2.5f , -2.2f ),
+        floatArrayOf(-3.8f, -12.3f, -2.0f ),
+        floatArrayOf( 2.4f, -3.5f , -0.4f ),
+        floatArrayOf(-1.7f, -7.5f ,  3.0f ),
+        floatArrayOf( 1.3f, -2.5f , -2.0f ),
+        floatArrayOf( 1.5f, -2.5f ,  2.0f ),
+        floatArrayOf( 1.5f, -1.5f ,  0.2f ),
+        floatArrayOf(-1.3f, -1.5f ,  1.0f ),
+        floatArrayOf( 2.0f, 15.0f ,  5.0f ),
+        floatArrayOf(-1.5f, 2.5f  , -2.2f ),
+        floatArrayOf(-3.8f, 12.3f , -2.0f ),
+        floatArrayOf( 2.4f, 3.5f  , -0.4f ),
+        floatArrayOf(-1.7f, 7.5f  ,  3.0f ),
+        floatArrayOf( 1.3f, 2.5f  , -2.0f ),
+        floatArrayOf( 1.5f, 2.5f  ,  2.0f ),
+        floatArrayOf( 1.5f, 1.5f  ,  0.2f ),
+        floatArrayOf(-1.3f, 1.5f  ,  1.0f )
     )
+
+    private fun getTimeFormat(): DateFormat {
+        return mTimeFormat12
+//        return if (android.text.format.DateFormat.is24HourFormat(this@OpenGLWatchFaceService)) mTimeFormat24 else mTimeFormat12
+    }
 
 
     override fun onCreateEngine(): Engine {
@@ -117,6 +137,23 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
                     .setShowSystemUiTime(false)
                     .build()
             )
+        }
+
+        private fun updateTimeIfChanged(newTimeString: String) {
+            if (newTimeString == timeString) {
+                return
+            }
+            timeString = newTimeString
+            timeCanvas.drawColor(Color.WHITE)
+            val xOffset = mTimePaint.measureText(timeString) / 2
+            val pixelsFromBaselineToCenterOfText = (mTimePaint.descent() + mTimePaint.ascent()) / 2
+            timeCanvas.drawText(
+                timeString,
+                timeWidth.toFloat() / 2 - xOffset,
+                timeHeight / 2 - pixelsFromBaselineToCenterOfText,
+                mTimePaint
+            )
+            cube.setTexture(timeBitmap)
         }
 
 
@@ -147,7 +184,7 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
             //configure global gl state
             GLES20.glEnable(GLES20.GL_DEPTH_TEST)
 
-            cube = MirrorCube(this@OpenGLWatchFaceService)
+            cube = TextureCube(this@OpenGLWatchFaceService)
             skybox = SkyBox(this@OpenGLWatchFaceService,
                 intArrayOf(
                     R.drawable.box_right,
@@ -156,6 +193,8 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
                     R.drawable.box_bottom,
                     R.drawable.box_front,
                     R.drawable.box_back))
+
+            updateTimeIfChanged(getTimeFormat().format(calendar.time))
         }
 
         override fun onGlSurfaceCreated(width: Int, height: Int) {
@@ -222,6 +261,7 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
             if (Log.isLoggable(TAG, Log.DEBUG)) {
                 Log.d(TAG, "onTimeTick: ambient = $isInAmbientMode")
             }
+            updateTimeIfChanged(getTimeFormat().format(calendar.time))
             invalidate()
         }
 
@@ -242,10 +282,10 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
                 GLES20.glClearColor(1f, 0.1f, 0.2f, 1f)
             }
 
-            val radius = 5.0f
+            val radius = 20.0f
             val camX = Math.sin(angle / 200.0) * radius
             val camY = Math.sin(angle / 300.0) * radius / 3
-            val camZ = Math.cos(angle / 200.0) * radius
+            val camZ = Math.cos(angle / 200.0) * radius - 10
             Matrix.setLookAtM(viewMatrix,0,
                 camX.toFloat(), camY.toFloat(), camZ.toFloat(), // eye
                 0f, 0f, 0f, // center

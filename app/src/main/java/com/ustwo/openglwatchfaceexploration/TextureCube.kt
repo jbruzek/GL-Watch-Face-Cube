@@ -1,6 +1,7 @@
 package com.ustwo.openglwatchfaceexploration
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.opengl.GLES20
 import android.opengl.GLUtils
@@ -136,7 +137,7 @@ class TextureCube (val context: Context) {
         uViewHandle = GLES20.glGetUniformLocation(mProgram, "view")
         uProjectionHandle = GLES20.glGetUniformLocation(mProgram, "projection")
 
-        generateTextures()
+        setTexture(R.drawable.checker)
     }
 
     fun draw(modelMatrix: FloatArray, viewMatrix: FloatArray, projectionMatrix: FloatArray) {
@@ -181,7 +182,14 @@ class TextureCube (val context: Context) {
         GLES20.glDisableVertexAttribArray(aPosHandle)
     }
 
-    private fun generateTextures() {
+    private fun setTexture(resource: Int) {
+        //get our texture bitmap
+        val bo = BitmapFactory.Options()
+        val tex = BitmapFactory.decodeResource(context.resources, R.drawable.checker, bo)
+        setTexture(tex)
+    }
+
+    fun setTexture(bitmap: Bitmap) {
         //generate texture
         GLES20.glGenTextures(1, textures, 0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0])
@@ -194,13 +202,9 @@ class TextureCube (val context: Context) {
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
 
-        //get our texture bitmap
-        val bo = BitmapFactory.Options()
-        val tex = BitmapFactory.decodeResource(context.resources, R.drawable.checker, bo)
 
-        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, tex, 0)
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
         GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
-        tex.recycle()
 
         if(textures[0] == 0){
             Log.d("Textures", "Error loading texture")
