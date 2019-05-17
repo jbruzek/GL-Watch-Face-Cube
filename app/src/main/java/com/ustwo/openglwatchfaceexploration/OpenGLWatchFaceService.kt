@@ -261,6 +261,7 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
             if (Log.isLoggable(TAG, Log.DEBUG)) {
                 Log.d(TAG, "onTimeTick: ambient = $isInAmbientMode")
             }
+            calendar.time = Date(System.currentTimeMillis())
             updateTimeIfChanged(getTimeFormat().format(calendar.time))
             invalidate()
         }
