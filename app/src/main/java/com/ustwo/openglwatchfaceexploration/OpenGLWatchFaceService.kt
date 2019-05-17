@@ -31,10 +31,70 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
     //Projection matrix transforms from view space to clip space
     private val projectionMatrix = FloatArray(16)
 
-    private lateinit var cube: Cube
+    private lateinit var cube: MirrorCube
     private lateinit var skybox: SkyBox
 
     private var angle = 0f
+
+    private val cubePositions = arrayOf(
+        floatArrayOf( 0.0f,  0.0f,  0.0f)
+//        floatArrayOf( 2.0f,  5.0f, -15.0f),
+//        floatArrayOf(-1.5f, -2.2f, -2.5f),
+//        floatArrayOf(-3.8f, -2.0f, -12.3f),
+//        floatArrayOf (2.4f, -0.4f, -3.5f),
+//        floatArrayOf(-1.7f,  3.0f, -7.5f),
+//        floatArrayOf( 1.3f, -2.0f, -2.5f),
+//        floatArrayOf( 1.5f,  2.0f, -2.5f),
+//        floatArrayOf( 1.5f,  0.2f, -1.5f),
+//        floatArrayOf(-1.3f,  1.0f, -1.5f),
+//        floatArrayOf( 2.0f,  5.0f, 15.0f),
+//        floatArrayOf(-1.5f, -2.2f, 2.5f),
+//        floatArrayOf(-3.8f, -2.0f, 12.3f),
+//        floatArrayOf (2.4f, -0.4f, 3.5f),
+//        floatArrayOf(-1.7f,  3.0f, 7.5f),
+//        floatArrayOf( 1.3f, -2.0f, 2.5f),
+//        floatArrayOf( 1.5f,  2.0f, 2.5f),
+//        floatArrayOf( 1.5f,  0.2f, 1.5f),
+//        floatArrayOf(-1.3f,  1.0f, 1.5f),
+//
+//        floatArrayOf(-15.0f,  2.0f,  5.0f),
+//        floatArrayOf(-2.5f , -1.5f, -2.2f),
+//        floatArrayOf(-12.3f, -3.8f, -2.0f),
+//        floatArrayOf( -3.5f , 2.4f, -0.4f),
+//        floatArrayOf(-7.5f , -1.7f,  3.0f),
+//        floatArrayOf(-2.5f ,  1.3f, -2.0f),
+//        floatArrayOf(-2.5f ,  1.5f,  2.0f),
+//        floatArrayOf(-1.5f ,  1.5f,  0.2f),
+//        floatArrayOf(-1.5f , -1.3f,  1.0f),
+//        floatArrayOf(15.0f ,  2.0f,  5.0f),
+//        floatArrayOf(2.5f  , -1.5f, -2.2f),
+//        floatArrayOf(12.3f , -3.8f, -2.0f),
+//        floatArrayOf( 3.5f  , 2.4f, -0.4f),
+//        floatArrayOf(7.5f  , -1.7f,  3.0f),
+//        floatArrayOf(2.5f  ,  1.3f, -2.0f),
+//        floatArrayOf(2.5f  ,  1.5f,  2.0f),
+//        floatArrayOf(1.5f  ,  1.5f,  0.2f),
+//        floatArrayOf(1.5f  , -1.3f,  1.0f),
+//
+//        floatArrayOf( 2.0f, -15.0f,  5.0f ),
+//        floatArrayOf(-1.5f, -2.5f , -2.2f ),
+//        floatArrayOf(-3.8f, -12.3f, -2.0f ),
+//        floatArrayOf( 2.4f, -3.5f , -0.4f ),
+//        floatArrayOf(-1.7f, -7.5f ,  3.0f ),
+//        floatArrayOf( 1.3f, -2.5f , -2.0f ),
+//        floatArrayOf( 1.5f, -2.5f ,  2.0f ),
+//        floatArrayOf( 1.5f, -1.5f ,  0.2f ),
+//        floatArrayOf(-1.3f, -1.5f ,  1.0f ),
+//        floatArrayOf( 2.0f, 15.0f ,  5.0f ),
+//        floatArrayOf(-1.5f, 2.5f  , -2.2f ),
+//        floatArrayOf(-3.8f, 12.3f , -2.0f ),
+//        floatArrayOf( 2.4f, 3.5f  , -0.4f ),
+//        floatArrayOf(-1.7f, 7.5f  ,  3.0f ),
+//        floatArrayOf( 1.3f, 2.5f  , -2.0f ),
+//        floatArrayOf( 1.5f, 2.5f  ,  2.0f ),
+//        floatArrayOf( 1.5f, 1.5f  ,  0.2f ),
+//        floatArrayOf(-1.3f, 1.5f  ,  1.0f )
+    )
 
 
     override fun onCreateEngine(): Engine {
@@ -87,7 +147,7 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
             //configure global gl state
             GLES20.glEnable(GLES20.GL_DEPTH_TEST)
 
-            cube = Cube(this@OpenGLWatchFaceService)
+            cube = MirrorCube(this@OpenGLWatchFaceService)
             skybox = SkyBox(this@OpenGLWatchFaceService,
                 intArrayOf(
                     R.drawable.box_right,
@@ -182,7 +242,7 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
                 GLES20.glClearColor(1f, 0.1f, 0.2f, 1f)
             }
 
-            val radius = 10.0f
+            val radius = 5.0f
             val camX = Math.sin(angle / 200.0) * radius
             val camY = Math.sin(angle / 300.0) * radius / 3
             val camZ = Math.cos(angle / 200.0) * radius
@@ -197,14 +257,21 @@ class OpenGLWatchFaceService : Gles2DepthWatchFaceService() {
 
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT or GLES20.GL_COLOR_BUFFER_BIT)
 
-            skybox.draw(viewMatrixSkyBox, projectionMatrix)
-
-            Matrix.setIdentityM(modelMatrix, 0)
+            //draw a bunch of cubes
+            for (translation in cubePositions) {
+                Matrix.setIdentityM(modelMatrix, 0)
+                Matrix.translateM(modelMatrix, 0, translation[0], translation[1], translation[2])
+                Matrix.rotateM(modelMatrix, 0, angle * translation[0], translation[0], 1f, translation[2])
+                cube.draw(modelMatrix, viewMatrix, projectionMatrix)
+            }
+//            Matrix.setIdentityM(modelMatrix, 0)
 //            Matrix.rotateM(modelMatrix, 0, angle, 0.5f, 1f, 0f)
             angle += 2
 //            if (angle >= 360) angle = 0f
 
-            cube.draw(modelMatrix, viewMatrix, projectionMatrix)
+
+            //Draw the skybox last
+            skybox.draw(viewMatrixSkyBox, projectionMatrix)
 
             // Draw every frame as long as we're visible and in interactive mode.
             if (isVisible && !isInAmbientMode) {

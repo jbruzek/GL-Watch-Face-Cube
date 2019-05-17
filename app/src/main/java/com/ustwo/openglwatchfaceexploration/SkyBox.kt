@@ -125,9 +125,9 @@ class SkyBox(val context: Context, val images: IntArray) {
     }
 
     fun draw(viewMatrix: FloatArray, projectionMatrix: FloatArray) {
-        //disable depth mask for the skybox
-        GLES20.glDepthMask(false)
-        Utils.checkGlError("glDepthMask")
+        //change depth function so skybox is only drawn when it isn't overlapped by an object
+        GLES20.glDepthFunc(GLES20.GL_LEQUAL)
+        Utils.checkGlError("glDepthFunc")
 
         // Add program to OpenGL ES environment
         GLES20.glUseProgram(mProgram)
@@ -156,9 +156,9 @@ class SkyBox(val context: Context, val images: IntArray) {
         GLES20.glDisableVertexAttribArray(aPosHandle)
         Utils.checkGlError("glDisableVertexAttribArray")
 
-        //re-enable depth mask
-        GLES20.glDepthMask(true)
-        Utils.checkGlError("glDepthMask")
+        //reset depth func
+        GLES20.glDepthFunc(GLES20.GL_LESS)
+        Utils.checkGlError("glDepthFunc")
     }
 
     private fun generateTextures() {

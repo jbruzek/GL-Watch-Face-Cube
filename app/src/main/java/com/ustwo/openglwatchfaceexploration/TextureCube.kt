@@ -12,7 +12,7 @@ import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
 
-class Cube (val context: Context) {
+class TextureCube (val context: Context) {
 
     companion object {
 
